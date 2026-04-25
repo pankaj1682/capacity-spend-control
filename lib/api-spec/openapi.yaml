@@ -1,0 +1,1264 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: Capacity & Spend Control API
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+  - name: auth
+  - name: users
+  - name: functions
+  - name: fxRates
+  - name: projects
+  - name: resources
+  - name: demands
+  - name: allocations
+  - name: budgets
+  - name: actuals
+  - name: dashboard
+  - name: imports
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/HealthStatus" }
+
+  /auth/signup:
+    post:
+      operationId: signup
+      tags: [auth]
+      summary: Sign up a new user (first user becomes Admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/SignupInput" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MeResponse" }
+  /auth/login:
+    post:
+      operationId: login
+      tags: [auth]
+      summary: Log in
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/LoginInput" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MeResponse" }
+  /auth/logout:
+    post:
+      operationId: logout
+      tags: [auth]
+      summary: Log out
+      responses:
+        "204": { description: Logged out }
+  /auth/me:
+    get:
+      operationId: getMe
+      tags: [auth]
+      summary: Get current user
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MeResponse" }
+
+  /users:
+    get:
+      operationId: listUsers
+      tags: [users]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/User" }
+    post:
+      operationId: createUser
+      tags: [users]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CreateUserInput" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/User" }
+  /users/{id}:
+    patch:
+      operationId: updateUser
+      tags: [users]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/UpdateUserInput" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/User" }
+    delete:
+      operationId: deleteUser
+      tags: [users]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        "204": { description: Deleted }
+
+  /functions:
+    get:
+      operationId: listFunctions
+      tags: [functions]
+      summary: List all business functions
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/BusinessFunction" }
+    post:
+      operationId: createFunction
+      tags: [functions]
+      summary: Create a business function (Admin only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/BusinessFunctionInput" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/BusinessFunction" }
+  /functions/{id}:
+    patch:
+      operationId: updateFunction
+      tags: [functions]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/BusinessFunctionInput" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/BusinessFunction" }
+    delete:
+      operationId: deleteFunction
+      tags: [functions]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        "204": { description: Deleted }
+
+  /fx-rates:
+    get:
+      operationId: listFxRates
+      tags: [fxRates]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/FxRate" }
+    post:
+      operationId: upsertFxRate
+      tags: [fxRates]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/FxRateInput" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/FxRate" }
+  /fx-rates/{currency}:
+    delete:
+      operationId: deleteFxRate
+      tags: [fxRates]
+      parameters:
+        - { name: currency, in: path, required: true, schema: { type: string } }
+      responses:
+        "204": { description: Deleted }
+
+  /imports/budgets:
+    post:
+      operationId: importBudgets
+      tags: [imports]
+      summary: Bulk upload budgets from a SAP CSV extract
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CsvImportBody" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ImportResult" }
+  /imports/actuals:
+    post:
+      operationId: importActuals
+      tags: [imports]
+      summary: Bulk upload actuals from a SAP CSV extract
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CsvImportBody" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ImportResult" }
+
+  /projects:
+    get:
+      operationId: listProjects
+      tags: [projects]
+      summary: List projects
+      parameters:
+        - { name: status, in: query, schema: { type: string } }
+        - { name: portfolio, in: query, schema: { type: string } }
+        - { name: phase, in: query, schema: { type: string } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Project" }
+    post:
+      operationId: createProject
+      tags: [projects]
+      summary: Create project
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ProjectInput" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Project" }
+  /projects/{id}:
+    get:
+      operationId: getProject
+      tags: [projects]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Project" }
+    patch:
+      operationId: updateProject
+      tags: [projects]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ProjectInput" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Project" }
+    delete:
+      operationId: deleteProject
+      tags: [projects]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        "204": { description: Deleted }
+
+  /resources:
+    get:
+      operationId: listResources
+      tags: [resources]
+      parameters:
+        - { name: skill, in: query, schema: { type: string } }
+        - { name: location, in: query, schema: { type: string } }
+        - { name: employmentType, in: query, schema: { type: string } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Resource" }
+    post:
+      operationId: createResource
+      tags: [resources]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ResourceInput" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Resource" }
+  /resources/{id}:
+    get:
+      operationId: getResource
+      tags: [resources]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Resource" }
+    patch:
+      operationId: updateResource
+      tags: [resources]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ResourceInput" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Resource" }
+    delete:
+      operationId: deleteResource
+      tags: [resources]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        "204": { description: Deleted }
+
+  /demands:
+    get:
+      operationId: listDemands
+      tags: [demands]
+      parameters:
+        - { name: projectId, in: query, schema: { type: integer } }
+        - { name: status, in: query, schema: { type: string } }
+        - { name: skill, in: query, schema: { type: string } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Demand" }
+    post:
+      operationId: createDemand
+      tags: [demands]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/DemandInput" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Demand" }
+  /demands/{id}:
+    patch:
+      operationId: updateDemand
+      tags: [demands]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/DemandInput" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Demand" }
+    delete:
+      operationId: deleteDemand
+      tags: [demands]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        "204": { description: Deleted }
+
+  /allocations:
+    get:
+      operationId: listAllocations
+      tags: [allocations]
+      parameters:
+        - { name: projectId, in: query, schema: { type: integer } }
+        - { name: resourceId, in: query, schema: { type: integer } }
+        - { name: year, in: query, schema: { type: integer } }
+        - { name: fy, in: query, schema: { type: integer }, description: "Fiscal year (Jul–Jun, named by ending year)" }
+        - { name: month, in: query, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Allocation" }
+    post:
+      operationId: createAllocation
+      tags: [allocations]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AllocationInput" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Allocation" }
+  /allocations/{id}:
+    patch:
+      operationId: updateAllocation
+      tags: [allocations]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AllocationInput" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Allocation" }
+    delete:
+      operationId: deleteAllocation
+      tags: [allocations]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        "204": { description: Deleted }
+
+  /budgets:
+    get:
+      operationId: listBudgets
+      tags: [budgets]
+      parameters:
+        - { name: projectId, in: query, schema: { type: integer } }
+        - { name: year, in: query, schema: { type: integer } }
+        - { name: fy, in: query, schema: { type: integer }, description: "Fiscal year (Jul–Jun, named by ending year)" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/BudgetPlan" }
+    post:
+      operationId: createBudget
+      tags: [budgets]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/BudgetPlanInput" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/BudgetPlan" }
+  /budgets/{id}:
+    patch:
+      operationId: updateBudget
+      tags: [budgets]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/BudgetPlanInput" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/BudgetPlan" }
+    delete:
+      operationId: deleteBudget
+      tags: [budgets]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        "204": { description: Deleted }
+
+  /actuals:
+    get:
+      operationId: listActuals
+      tags: [actuals]
+      parameters:
+        - { name: projectId, in: query, schema: { type: integer } }
+        - { name: year, in: query, schema: { type: integer } }
+        - { name: fy, in: query, schema: { type: integer }, description: "Fiscal year (Jul–Jun, named by ending year)" }
+        - { name: source, in: query, schema: { type: string } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Actual" }
+    post:
+      operationId: createActual
+      tags: [actuals]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ActualInput" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Actual" }
+  /actuals/{id}:
+    patch:
+      operationId: updateActual
+      tags: [actuals]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ActualInput" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Actual" }
+    delete:
+      operationId: deleteActual
+      tags: [actuals]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        "204": { description: Deleted }
+
+  /dashboard/summary:
+    get:
+      operationId: getDashboardSummary
+      tags: [dashboard]
+      summary: Top-level KPIs across portfolio
+      parameters:
+        - { name: year, in: query, schema: { type: integer } }
+        - { name: fy, in: query, schema: { type: integer }, description: "Fiscal year (Jul–Jun, named by ending year)" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DashboardSummary" }
+  /dashboard/budget-vs-actual:
+    get:
+      operationId: getBudgetVsActual
+      tags: [dashboard]
+      summary: Approved vs forecast vs actual by month
+      parameters:
+        - { name: year, in: query, schema: { type: integer } }
+        - { name: fy, in: query, schema: { type: integer }, description: "Fiscal year (Jul–Jun, named by ending year)" }
+        - { name: projectId, in: query, schema: { type: integer } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/BudgetVsActualPoint" }
+  /dashboard/utilization:
+    get:
+      operationId: getUtilization
+      tags: [dashboard]
+      summary: Resource utilization by month
+      parameters:
+        - { name: year, in: query, schema: { type: integer } }
+        - { name: fy, in: query, schema: { type: integer }, description: "Fiscal year (Jul–Jun, named by ending year)" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/UtilizationRow" }
+  /dashboard/overallocated:
+    get:
+      operationId: getOverallocated
+      tags: [dashboard]
+      summary: Resources allocated beyond capacity in any month
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/OverallocationRow" }
+  /dashboard/demand-vs-capacity:
+    get:
+      operationId: getDemandVsCapacity
+      tags: [dashboard]
+      summary: Demand vs available capacity by skill
+      parameters:
+        - { name: year, in: query, schema: { type: integer } }
+        - { name: fy, in: query, schema: { type: integer }, description: "Fiscal year (Jul–Jun, named by ending year)" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/DemandVsCapacityRow" }
+  /dashboard/burn-rate:
+    get:
+      operationId: getBurnRate
+      tags: [dashboard]
+      summary: Project cost burn rate
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/BurnRateRow" }
+  /dashboard/multi-year:
+    get:
+      operationId: getMultiYearBudget
+      tags: [dashboard]
+      summary: Multi-year approved/forecast/actual roll-up
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/MultiYearRow" }
+  /dashboard/opex-capex:
+    get:
+      operationId: getOpexCapex
+      tags: [dashboard]
+      summary: Opex vs Capex split by month
+      parameters:
+        - { name: year, in: query, schema: { type: integer } }
+        - { name: fy, in: query, schema: { type: integer }, description: "Fiscal year (Jul–Jun, named by ending year)" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/OpexCapexRow" }
+  /dashboard/skill-shortage:
+    get:
+      operationId: getSkillShortage
+      tags: [dashboard]
+      summary: Forecasted skill shortages by month
+      parameters:
+        - { name: year, in: query, schema: { type: integer } }
+        - { name: fy, in: query, schema: { type: integer }, description: "Fiscal year (Jul–Jun, named by ending year)" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/SkillShortageRow" }
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      required: [status]
+      properties:
+        status: { type: string }
+
+    BusinessFunction:
+      type: object
+      required: [id, name, slug]
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        slug: { type: string }
+    BusinessFunctionInput:
+      type: object
+      required: [name, slug]
+      properties:
+        name: { type: string }
+        slug: { type: string }
+
+    Project:
+      type: object
+      required:
+        - id
+        - name
+        - code
+        - portfolio
+        - startDate
+        - endDate
+        - phase
+        - budgetOwner
+        - status
+        - approvedBudget
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        code: { type: string }
+        portfolio: { type: string }
+        startDate: { type: string, format: date }
+        endDate: { type: string, format: date }
+        phase: { type: string, enum: [Opex, Capex, Run, Change] }
+        budgetOwner: { type: string }
+        status: { type: string, enum: [Planned, Active, On Hold, Completed, Cancelled] }
+        approvedBudget: { type: number }
+        functionId: { type: integer, nullable: true }
+        functionName: { type: string, nullable: true }
+    ProjectInput:
+      type: object
+      required:
+        - name
+        - code
+        - portfolio
+        - startDate
+        - endDate
+        - phase
+        - budgetOwner
+        - status
+        - approvedBudget
+      properties:
+        name: { type: string }
+        code: { type: string }
+        portfolio: { type: string }
+        startDate: { type: string, format: date }
+        endDate: { type: string, format: date }
+        phase: { type: string, enum: [Opex, Capex, Run, Change] }
+        budgetOwner: { type: string }
+        status: { type: string, enum: [Planned, Active, On Hold, Completed, Cancelled] }
+        approvedBudget: { type: number }
+        functionId: { type: integer, nullable: true }
+
+    Resource:
+      type: object
+      required:
+        - id
+        - name
+        - role
+        - primarySkill
+        - secondarySkills
+        - location
+        - rate
+        - rateType
+        - currency
+        - fxRateToUsd
+        - employmentType
+        - availabilityPct
+        - costCentre
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        role: { type: string }
+        primarySkill: { type: string }
+        secondarySkills:
+          type: array
+          items: { type: string }
+        location: { type: string }
+        rate: { type: number }
+        rateType: { type: string, enum: [daily, monthly] }
+        currency: { type: string }
+        fxRateToUsd: { type: number }
+        employmentType: { type: string, enum: [FTE, Contractor, Vendor] }
+        availabilityPct: { type: number }
+        costCentre: { type: string }
+        functionId: { type: integer, nullable: true }
+        functionName: { type: string, nullable: true }
+    ResourceInput:
+      type: object
+      required:
+        - name
+        - role
+        - primarySkill
+        - secondarySkills
+        - location
+        - rate
+        - rateType
+        - currency
+        - employmentType
+        - availabilityPct
+        - costCentre
+      properties:
+        name: { type: string }
+        role: { type: string }
+        primarySkill: { type: string }
+        secondarySkills:
+          type: array
+          items: { type: string }
+        location: { type: string }
+        rate: { type: number }
+        rateType: { type: string, enum: [daily, monthly] }
+        currency: { type: string }
+        fxRateToUsd: { type: number }
+        employmentType: { type: string, enum: [FTE, Contractor, Vendor] }
+        availabilityPct: { type: number }
+        costCentre: { type: string }
+        functionId: { type: integer, nullable: true }
+
+    Demand:
+      type: object
+      required:
+        - id
+        - projectId
+        - projectName
+        - skillRequired
+        - roleRequired
+        - startMonth
+        - endMonth
+        - requiredFte
+        - priority
+        - status
+      properties:
+        id: { type: integer }
+        projectId: { type: integer }
+        projectName: { type: string }
+        skillRequired: { type: string }
+        roleRequired: { type: string }
+        startMonth: { type: string, description: "YYYY-MM" }
+        endMonth: { type: string, description: "YYYY-MM" }
+        requiredFte: { type: number }
+        priority: { type: string, enum: [Low, Medium, High, Critical] }
+        status: { type: string, enum: [Draft, Submitted, Approved, Fulfilled, Rejected] }
+    DemandInput:
+      type: object
+      required:
+        - projectId
+        - skillRequired
+        - roleRequired
+        - startMonth
+        - endMonth
+        - requiredFte
+        - priority
+        - status
+      properties:
+        projectId: { type: integer }
+        skillRequired: { type: string }
+        roleRequired: { type: string }
+        startMonth: { type: string }
+        endMonth: { type: string }
+        requiredFte: { type: number }
+        priority: { type: string, enum: [Low, Medium, High, Critical] }
+        status: { type: string, enum: [Draft, Submitted, Approved, Fulfilled, Rejected] }
+
+    Allocation:
+      type: object
+      required:
+        - id
+        - projectId
+        - projectName
+        - resourceId
+        - resourceName
+        - month
+        - year
+        - plannedDays
+        - allocationPct
+        - rate
+        - plannedCost
+        - opexPct
+        - capexPct
+        - wbsCode
+      properties:
+        id: { type: integer }
+        projectId: { type: integer }
+        projectName: { type: string }
+        resourceId: { type: integer }
+        resourceName: { type: string }
+        month: { type: integer, minimum: 1, maximum: 12 }
+        year: { type: integer }
+        plannedDays: { type: number }
+        allocationPct: { type: number }
+        rate: { type: number }
+        plannedCost: { type: number }
+        opexPct: { type: number }
+        capexPct: { type: number }
+        wbsCode: { type: string }
+    AllocationInput:
+      type: object
+      required:
+        - projectId
+        - resourceId
+        - month
+        - year
+        - plannedDays
+        - allocationPct
+        - rate
+        - opexPct
+        - capexPct
+        - wbsCode
+      properties:
+        projectId: { type: integer }
+        resourceId: { type: integer }
+        month: { type: integer }
+        year: { type: integer }
+        plannedDays: { type: number }
+        allocationPct: { type: number }
+        rate: { type: number }
+        opexPct: { type: number }
+        capexPct: { type: number }
+        wbsCode: { type: string }
+
+    BudgetPlan:
+      type: object
+      required:
+        - id
+        - projectId
+        - projectName
+        - year
+        - month
+        - costType
+        - approvedBudget
+        - forecastBudget
+        - plannedResourceCost
+        - nonResourceCost
+      properties:
+        id: { type: integer }
+        projectId: { type: integer }
+        projectName: { type: string }
+        year: { type: integer }
+        month: { type: integer }
+        costType: { type: string, enum: [Opex, Capex] }
+        approvedBudget: { type: number }
+        forecastBudget: { type: number }
+        plannedResourceCost: { type: number }
+        nonResourceCost: { type: number }
+    BudgetPlanInput:
+      type: object
+      required:
+        - projectId
+        - year
+        - month
+        - costType
+        - approvedBudget
+        - forecastBudget
+        - plannedResourceCost
+        - nonResourceCost
+      properties:
+        projectId: { type: integer }
+        year: { type: integer }
+        month: { type: integer }
+        costType: { type: string, enum: [Opex, Capex] }
+        approvedBudget: { type: number }
+        forecastBudget: { type: number }
+        plannedResourceCost: { type: number }
+        nonResourceCost: { type: number }
+
+    Actual:
+      type: object
+      required:
+        - id
+        - projectId
+        - projectName
+        - year
+        - month
+        - actualResourceCost
+        - actualVendorCost
+        - actualInvoiceCost
+        - source
+      properties:
+        id: { type: integer }
+        projectId: { type: integer }
+        projectName: { type: string }
+        year: { type: integer }
+        month: { type: integer }
+        actualResourceCost: { type: number }
+        actualVendorCost: { type: number }
+        actualInvoiceCost: { type: number }
+        source: { type: string, enum: [Manual, ExcelUpload, SAP, Timesheet] }
+    ActualInput:
+      type: object
+      required:
+        - projectId
+        - year
+        - month
+        - actualResourceCost
+        - actualVendorCost
+        - actualInvoiceCost
+        - source
+      properties:
+        projectId: { type: integer }
+        year: { type: integer }
+        month: { type: integer }
+        actualResourceCost: { type: number }
+        actualVendorCost: { type: number }
+        actualInvoiceCost: { type: number }
+        source: { type: string, enum: [Manual, ExcelUpload, SAP, Timesheet] }
+
+    DashboardSummary:
+      type: object
+      required:
+        - totalApprovedBudget
+        - totalForecastBudget
+        - totalActualSpend
+        - totalRemaining
+        - activeProjects
+        - totalResources
+        - openDemands
+        - overallocatedCount
+      properties:
+        totalApprovedBudget: { type: number }
+        totalForecastBudget: { type: number }
+        totalActualSpend: { type: number }
+        totalRemaining: { type: number }
+        activeProjects: { type: integer }
+        totalResources: { type: integer }
+        openDemands: { type: integer }
+        overallocatedCount: { type: integer }
+
+    BudgetVsActualPoint:
+      type: object
+      required: [year, month, approved, forecast, actual]
+      properties:
+        year: { type: integer }
+        month: { type: integer }
+        approved: { type: number }
+        forecast: { type: number }
+        actual: { type: number }
+
+    UtilizationRow:
+      type: object
+      required: [resourceId, resourceName, year, month, allocationPct, capacityPct]
+      properties:
+        resourceId: { type: integer }
+        resourceName: { type: string }
+        year: { type: integer }
+        month: { type: integer }
+        allocationPct: { type: number }
+        capacityPct: { type: number }
+
+    OverallocationRow:
+      type: object
+      required: [resourceId, resourceName, year, month, allocationPct, overBy]
+      properties:
+        resourceId: { type: integer }
+        resourceName: { type: string }
+        year: { type: integer }
+        month: { type: integer }
+        allocationPct: { type: number }
+        overBy: { type: number }
+
+    DemandVsCapacityRow:
+      type: object
+      required: [skill, demandFte, capacityFte, gap]
+      properties:
+        skill: { type: string }
+        demandFte: { type: number }
+        capacityFte: { type: number }
+        gap: { type: number }
+
+    BurnRateRow:
+      type: object
+      required: [projectId, projectName, approvedBudget, actualToDate, burnPct, monthsElapsed]
+      properties:
+        projectId: { type: integer }
+        projectName: { type: string }
+        approvedBudget: { type: number }
+        actualToDate: { type: number }
+        burnPct: { type: number }
+        monthsElapsed: { type: integer }
+
+    MultiYearRow:
+      type: object
+      required: [year, approved, forecast, actual]
+      properties:
+        year: { type: integer }
+        approved: { type: number }
+        forecast: { type: number }
+        actual: { type: number }
+
+    OpexCapexRow:
+      type: object
+      required: [year, month, opex, capex]
+      properties:
+        year: { type: integer }
+        month: { type: integer }
+        opex: { type: number }
+        capex: { type: number }
+
+    SkillShortageRow:
+      type: object
+      required: [skill, year, month, demandFte, capacityFte, shortageFte]
+      properties:
+        skill: { type: string }
+        year: { type: integer }
+        month: { type: integer }
+        demandFte: { type: number }
+        capacityFte: { type: number }
+        shortageFte: { type: number }
+
+    SignupInput:
+      type: object
+      required: [email, password, name]
+      properties:
+        email: { type: string, format: email }
+        password: { type: string, minLength: 8 }
+        name: { type: string }
+    LoginInput:
+      type: object
+      required: [email, password]
+      properties:
+        email: { type: string, format: email }
+        password: { type: string }
+    MeResponse:
+      type: object
+      required: [user]
+      properties:
+        user: { $ref: "#/components/schemas/User" }
+
+    User:
+      type: object
+      required: [id, email, name, role, createdAt]
+      properties:
+        id: { type: integer }
+        email: { type: string }
+        name: { type: string }
+        role:
+          type: string
+          enum: [Admin, "PMO Lead", "Project Manager", "Finance Controller", "Resource Manager", "Demand Owner", Viewer]
+        createdAt: { type: string, format: date-time }
+        functionId: { type: integer, nullable: true }
+        functionName: { type: string, nullable: true }
+    CreateUserInput:
+      type: object
+      required: [email, password, name, role]
+      properties:
+        email: { type: string, format: email }
+        password: { type: string, minLength: 8 }
+        name: { type: string }
+        role:
+          type: string
+          enum: [Admin, "PMO Lead", "Project Manager", "Finance Controller", "Resource Manager", "Demand Owner", Viewer]
+        functionId: { type: integer, nullable: true }
+    UpdateUserInput:
+      type: object
+      properties:
+        name: { type: string }
+        role:
+          type: string
+          enum: [Admin, "PMO Lead", "Project Manager", "Finance Controller", "Resource Manager", "Demand Owner", Viewer]
+        password: { type: string, minLength: 8 }
+        functionId: { type: integer, nullable: true }
+
+    FxRate:
+      type: object
+      required: [currency, rateToUsd, updatedAt]
+      properties:
+        currency: { type: string }
+        rateToUsd: { type: number }
+        updatedAt: { type: string, format: date-time }
+    FxRateInput:
+      type: object
+      required: [currency, rateToUsd]
+      properties:
+        currency: { type: string }
+        rateToUsd: { type: number }
+
+    CsvImportBody:
+      type: object
+      required: [csv]
+      properties:
+        csv: { type: string, description: "Raw CSV text (SAP extract). Columns: project_code, year, month, ..." }
+    ImportResult:
+      type: object
+      required: [inserted, updated, errors]
+      properties:
+        inserted: { type: integer }
+        updated: { type: integer }
+        errors:
+          type: array
+          items:
+            type: object
+            required: [row, message]
+            properties:
+              row: { type: integer }
+              message: { type: string }

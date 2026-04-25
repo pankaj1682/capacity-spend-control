@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "Capacity & Spend Control"
+version = "1.0.0"
+id = "artifacts/capacity-spend-control"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 19595
+
+[services.development]
+run = "pnpm --filter @workspace/capacity-spend-control run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/capacity-spend-control", "run", "build" ]
+publicDir = "artifacts/capacity-spend-control/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "19595"
+BASE_PATH = "/"
