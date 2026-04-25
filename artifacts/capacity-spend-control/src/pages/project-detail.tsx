@@ -25,6 +25,7 @@ export default function ProjectDetail() {
   const [, params] = useRoute("/projects/:id");
   const projectId = params?.id ? parseInt(params.id) : 0;
   const { fy } = useFy();
+  const year = fy;
 
   const { data: project, isLoading: loadingProject } = useGetProject(projectId, { 
     query: { enabled: !!projectId, queryKey: getGetProjectQueryKey(projectId) } 

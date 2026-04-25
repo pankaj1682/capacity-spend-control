@@ -64,7 +64,7 @@ export default function Projects() {
       portfolio: "",
       startDate: new Date().toISOString(),
       endDate: new Date().toISOString(),
-      phase: "Planned", // Will be mapped correctly
+      phase: "Opex",
       status: "Planned",
       budgetOwner: "",
       approvedBudget: 0,
@@ -162,14 +162,20 @@ export default function Projects() {
                       <FormMessage />
                     </FormItem>
                   )} />
-                  <div className="space-y-2">
-                     <FormLabel>Start Date</FormLabel>
-                     <Input type="date" value={createForm.watch('startDate')?.split('T')[0]} onChange={e => createForm.setValue('startDate', new Date(e.target.value).toISOString())} />
-                  </div>
-                  <div className="space-y-2">
-                     <FormLabel>End Date</FormLabel>
-                     <Input type="date" value={createForm.watch('endDate')?.split('T')[0]} onChange={e => createForm.setValue('endDate', new Date(e.target.value).toISOString())} />
-                  </div>
+                  <FormField control={createForm.control} name="startDate" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Start Date</FormLabel>
+                      <FormControl><Input type="date" value={field.value?.split('T')[0] ?? ''} onChange={e => { if (e.target.value) field.onChange(new Date(e.target.value + 'T12:00:00').toISOString()); }} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                  <FormField control={createForm.control} name="endDate" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>End Date</FormLabel>
+                      <FormControl><Input type="date" value={field.value?.split('T')[0] ?? ''} onChange={e => { if (e.target.value) field.onChange(new Date(e.target.value + 'T12:00:00').toISOString()); }} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
                 </div>
                 <DialogFooter>
                   <Button type="button" variant="outline" onClick={() => setIsCreateOpen(false)}>Cancel</Button>

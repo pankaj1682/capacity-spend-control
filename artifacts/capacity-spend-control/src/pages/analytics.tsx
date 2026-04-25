@@ -96,7 +96,7 @@ export default function Analytics() {
         {/* Opex vs Capex */}
         <Card className="col-span-1 xl:col-span-1">
           <CardHeader>
-            <CardTitle>Opex vs Capex ({year})</CardTitle>
+            <CardTitle>Opex vs Capex (FY{fy})</CardTitle>
           </CardHeader>
           <CardContent className="h-[300px]">
             {loadingOc ? <Skeleton className="h-full w-full" /> : opexCapex ? (
@@ -118,7 +118,7 @@ export default function Analytics() {
         {/* Utilization Table */}
         <Card className="col-span-1 lg:col-span-2 xl:col-span-2">
           <CardHeader>
-            <CardTitle>Resource Utilization ({year})</CardTitle>
+            <CardTitle>Resource Utilization (FY{fy})</CardTitle>
           </CardHeader>
           <CardContent>
             {loadingUtil ? <Skeleton className="h-[200px] w-full" /> : utilization && utilization.length > 0 ? (
